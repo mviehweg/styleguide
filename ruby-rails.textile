@@ -7,6 +7,310 @@ It might be hard for you a developer that spent months and years by development 
 * *Make it consistent and readable*
 * *Allow newcomers to rapidly get involved in development of new or refactorization of old features*
 
+h1. Coding Style
+
+* Use @UTF-8@ as the source file encoding and include it Ruby magic comment
+
+<pre><code># encoding: UTF-8
+</code></pre>
+
+* Use soft-tabs with a two space indent
+* Keep lines fewer than 80 characters
+* Never leave trailing whitespace
+* Use spaces around operators, after commas, colons and semicolons, around @{@ and before @}@. Whitespace might be (mostly) irrelevant to Ruby interpreter, but its proper use is the key to writing easily readable code
+
+<pre><code>sum = 1 + 2
+a, b = 1, 2
+1 > 2 ? true : false; puts "Hello!"
+[1, 2, 3].each { |e| puts e }
+</code></pre>
+
+The only exception is when using the exponent operator:
+  
+<pre><code># Wrong
+e = M * c ** 2
+
+# Right
+e = M * c**2
+</code></pre>
+
+* Indent @when@ as deep as case
+
+<pre><code>case
+when song.name == 'Misty'
+  puts 'Not again!'
+when song.duration > 120
+  puts 'Too long!'
+when Time.now.hour > 21
+  puts "It's too late"
+else
+  song.play
+end
+
+kind = case year
+       when 1850..1889 then 'Blues'
+       when 1890..1909 then 'Ragtime'
+       when 1910..1929 then 'New Orleans Jazz'
+       when 1930..1939 then 'Swing'
+       when 1940..1950 then 'Bebop'
+       else 'Jazz'
+       end
+</code></pre>
+
+* Align the parameters of a method call if they span over multiple lines
+
+*DISCUSS!!*
+
+<pre><code># Wrong (line is too long)
+def send_mail(source)
+  Mailer.deliver(to: 'bob@example.com', from: 'us@example.com', subject: 'Important message', body: source.text)
+end
+
+# Wrong (double indent)
+def send_mail(source)
+  Mailer.deliver(
+      to: 'bob@example.com',
+      from: 'us@example.com',
+      subject: 'Important message',
+      body: source.text)
+end
+
+def send_mail(source)
+  Mailer.deliver(
+    to: 'bob@example.com',
+    from: 'us@example.com',
+    subject: 'Important message',
+    body: source.text)
+end
+
+def send_mail(source)
+  Mailer.deliver(to: 'bob@example.com',
+                 from: 'us@example.com',
+                 subject: 'Important message',
+                 body: source.text)
+end
+</code></pre>
+
+* Use empty lines between methods and to break a method into logical paragraphs
+
+<pre><code>def some_method
+  data = initialize(options)
+
+  data.manipulate!
+
+  data.result
+end
+
+def some_method
+  result
+end
+</code></pre>
+
+* Add underscores to big numeric literals to improve their readability
+
+<pre><code># Wrong (How many 0s are there?)
+number = 10000000
+
+# Right
+number = 10_000_000
+</code></pre>
+
+
+h1. Documentation
+
+*DISCUSS!*
+
+h1. Syntax
+
+* Use @def@ with parentheses when there are arguments. Omit the parentheses when the method accept any arguments
+
+<pre><code>def some_method
+  # ommited...
+end
+
+def some_method_with_arguments(argument1, argument2)
+  # ommited..
+end
+</code></pre>
+
+* Never use @for@, unless you know exacltly why. Most of the time iterators should be used instead. @for@ is implemented in terms of @each@ (so you're adding a level of indirection), but with a twist - for doesn't introduce a new scope (unlike @each@) and variables defined in its block will be visible outside it.
+
+<pre><code>array = [1, 2, 3]
+# Wrong
+for number in array do
+  puts number
+end
+</code></pre>
+
+* Never use @then@ for multilie @if/unless@
+
+<pre><code># Wrong
+if some_condition then
+  # ommited...
+end
+
+# Right
+if some_condition
+  # ommited...
+end
+</code></pre>
+
+
+* Avoid the ternary operator (@?:@) except in cases where all expressions are extremely trivial. However, do use the ternary operator (@?:@) over @if/then/else/end@ constructs for single line conditionals.
+
+<pre><code># Wrong
+result = if some_condition then something else something_else end
+
+# Right
+result = some_condition ? something : something_else
+</code></pre>
+
+* Use one expression per branch in a ternary operator. This also means that ternary operators must not be nested. Prefer @if/else@ constructs in these cases.
+
+<pre><code># Wrong
+some_condition ? (nested_condition ? nested_something : nested_something_else) : something_else
+
+# Right
+if some_condition
+  nested_condition ? nested_something : nested_something_else
+else
+  something_else
+end
+</code></pre>
+
+* Use @and@ and @or@ keywords for control flow. In conditionsalways use @&&@ and @||@.
+h1. Unit::Test with Shoulda
+* Favour modifier @if/unless@ usage when you have a single-line body
+
+<pre><code># Wrong
+if some_condition
+  do_something
+end
+
+# Right
+do_something if some_condition
+</code></pre>
+
+* Never use @unless@ with @else@. Rewrite these with positive case first
+
+<pre><code># Wrong
+unless success?
+  puts 'failure'
+else
+  puts 'success'
+end
+
+# Right
+if success?
+  puts 'success'
+else
+  puts 'failure'
+end
+</code></pre>
+
+* Don't use parntheses around the condition of an @if/unless/while@, unless the condition contains an assignment
+
+<pre><code># Wrong
+if (x > 10)
+  # ommited...
+end
+
+# Right
+if x > 10
+  # ommited...
+end
+
+# Ok
+if (x = self.next_value)
+  # ommited...
+end
+</code></pre>
+
+* Prefer @{...}@ over @do...end@ for single-line blocks. Avoid using @{...}@ for multi-line blocks (multiline chaining is always ugly). Always use @do...end@ for "control flow" and "method definitions" (e.g. Rakefiles and certain DSLs). Avoid @do...end@ when chaining.
+
+<pre><code>names = ["Bozhidar", "Steve", "Sarah"]
+
+# Wrong
+names.each do |name|
+  puts name
+end
+
+# Right
+names.each { |name| puts name }
+
+# Wrong
+names.select do |name|
+  name.start_with?("S")
+end.map { |name| name.upcase }
+
+# Right
+names.select { |name| name.start_with?("S") }.map { |name| name.upcase }
+</code></pre>
+
+* Avoid @return@ where not required
+
+<pre><code># Wrong
+def some_method(some_arr)
+  return some_arr.size
+end
+
+# Right
+def some_method(some_array)
+  some_array.size
+end
+</code></pre>
+
+* Use spaces arount the @=@ operator when assigning default values to method parameters
+
+<pre><code># Wrong
+def some_method(arg1=:default, arg2=[], arg3=nil)
+  # ommited...
+end
+
+def some_method(arg1 = :default, arg2 = [], arg3 = nil)
+  # ommited...
+end
+</code></pre>
+
+* Avoid @self@ where not required. (It is only required when calling a self write accessor)
+
+<pre><code># Wrong
+def ready?
+  if self.last_reviewed_at > self.last_updated_at
+    self.worker.update(self.content, self.options)
+    self.status = :in_progress
+  end
+  self.status == :verified
+end
+
+# Right
+def ready?
+  if last_reviewed_at > last_updated_at
+    worker.update(content, options)
+    self.status = :in_progress
+  end
+  status == :verified
+end
+</code></pre>
+
+* Use @||=@ freely to initialize variables
+
+<pre><code># Set name to Joe, only if it is nil or false
+name ||= "Joe"
+</code></pre>
+
+* Never use @||=@ to initialize boolean variables. (Consider what would happen if the current value happened to be @false@)
+* Avoid using Perl-style special varibales (like @$0-9@, @$@).
+* Never put a space between a method name and opening parenthesis
+
+<pre><code># Wrong
+method (3 + 2) + 1
+
+# Right
+method(3 + 2) + 1
+
+h1. Naming
+
 h1. Unit::Test with Shoulda
 
 *Unit::Test is so great! Why do we need something, that I don't even know, like Shoulda?*
@@ -181,6 +485,9 @@ end
 
 h1. TODOs
 
+* Discuss everything marked *DISCUSS!!*
+* Naming
+* The rest after naming in styleguides
 * *Unit::Test with Shoulda*
   - Easy to read matcher
   - Mocking (stubbing) HTTP requests
@@ -190,3 +497,5 @@ h1. TODOs
 h1. Resources
 
 http://betterspecs.org/
+https://github.com/bbatsov/ruby-style-guide
+https://github.com/styleguide
