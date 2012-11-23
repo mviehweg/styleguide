@@ -9,4 +9,186 @@ It might be hard for you a developer that spent months and years by development 
 * *Make it consistent and readable*
 * *Allow newcomers to rapidly get involved in development of new or refactorization of old features*
 
+h1. Unit::Test with Shoulda
 
+*Unit::Test is so great! Why do we need something, that I don't even know, like Shoulda?*
+
+Unit::Test can be great when well written. But when the test file gets longer, when the tested class more complicated and when @test_presence_of_user_when_cloths_state_is_sold@ cannot be longer, it sometimes start be a challenge to understand it.
+
+Shoulda introduces "contexts" to Unit::Test. This means that instead of using methods and their names to invoke tests, you use blocks with names. It also allows you to write atomic tests without the problem of running out of names for methods.
+
+h2. Describe class
+
+Shoulda is mainly about text and can get you a nice explanation of the problem when something goes wrong. For this reason, start writing you test by describing what class is the test about.
+
+
+<pre><code># Wrong
+class TestSimpleNumber < Test::Unit::TestCase
+  context 'simple number' do
+    ...
+  end
+end
+
+# Right
+class TestSimpleNumber < Test::Unit::TestCase
+  context 'SimpleNumber' do
+    ...
+  end
+end
+</code></pre>
+
+
+h2. How to describe you methods
+
+Once you are inside the context that describes the class. Also use contexts that describes methods.
+
+Keep clear the methods you are describing. As convention use . as prefix for class methods and # as prefix for instance methods.
+
+<pre><code># Wrong
+context 'the authenticate method for user' do
+context 'if the user is an admin' do
+
+# Right
+context '.authenticate' do
+context '#admin?' do
+</code></pre>
+
+
+h2. Single expectation test
+
+The 'one expectation' means 'each test should make only one assertion'. All test should be atomic if possible. This helps you on finding possible errors, going directly to the failing test.
+
+<pre><code># Wrong
+should 'create a resource' do
+  assert_difference('User.count') do
+    post :create, :user => { :name => "Joe" }
+  end
+  assert_redirected_to user_path(assigns(:user))
+end
+
+
+# Right
+should 'create a resource' do
+  assert_difference('User.count') do
+    post :create, :user => { :name => "Joe" }
+  end
+end
+
+should 'redirect to user path' do
+  assert_redirected_to user_path(assigns(:user))
+end
+</code></pre>
+
+h2. Test all possible cases
+
+Testing is a good practice, but if you do not test the edge cases, it will not be useful. Test valid, edge and invalid case. For example, consider the following action.
+
+<pre><code>before_filter :find_owned_resources
+before_filter :find_resource
+
+def destroy
+  render 'show'
+  @consumption.destroy
+end
+</code></pre>
+
+The usual error is that the resource have been destoryed. But there are at least other two edge cases - when the resource is not found and when it is not owned. As a rule of thumb think of all the possible inputs and states you can.
+
+<pre><code># Wrong
+should 'show the resource'
+
+# Right
+context 'when resource is found' do
+  should 'respond with 200'
+  should 'show destroy the resource'
+end
+
+context 'when resource is not found' do
+  should 'respond with 404'
+end
+
+context 'when resource is not owned' do
+  should 'respond with 404'
+end
+</code></pre>
+
+h2. User factories and not fixtures
+
+Do not use fixtures which are difficult to control, instead use factries. Use them to reduce the verbosity on creating new data.
+
+<pre><code># Wrong
+user = User.create(
+  :name => "Joe",
+  :surname => "Kowalski",
+  :city => "La Vida",
+  :birth => "21 September 1979"
+)
+
+# Right
+user = Factory.create(:user)
+</code></pre>
+
+h2. Setup & Teardown
+
+In Unit::Test you have the @setup@ method that is called before test and the @teardown@ method that is called after test. They are regular methods and setup is called before all test cases and teardown the other way round.
+
+Shoulda allows you the specify setups and teardowns in different level of contexts and you may use it as many times as you want. Setup should contain only objects, variables and procedures necessary for given context. Otherwise it would slow other test by providing them with "setup" that is no required by them.
+
+<pre><code># Wrong
+setup do
+  @bear = Factory.build(:bear)
+  @kangaroo = Factory.build(:kangaroo)
+end
+
+context 'when bear is missing' do
+  should 'call police'
+  should 'evacuate zoo'
+end
+
+context 'when kangaroo is missing'
+  should 'inform security'
+  should 'inform visitors'
+end
+
+# Right
+context 'when bear is missing' do
+  setup do
+    @kangaroo = Factory.build(:kangaroo)
+  end
+  
+  should 'call police'
+  should 'evacuate zoo'
+end
+
+context 'when kangaroo is missing' do
+  setup do
+    @bear = Factory.build(:bear)
+  end
+  
+  should 'inform security'
+  should 'inform visitors'
+end
+</code></pre>
+
+h2. Stub or not to stub
+
+Always try to test the real behaviour and everything should be just fine. Anyway, sometimes stubs my be useful, e.g. you stub a filter that you don't want to be run, or a method that is called by the tested behaviour. Stubs make your tests definitely faster, that is beyond question. But never "overstub" your test in a way that would make it hard to understand.
+
+<pre><code>context 'when not found' do
+  should 'respond with 404' do
+    assert_equal 404, response.status
+  end
+end
+</code></pre> 
+
+h1. TODOs
+
+* *Unit::Test with Shoulda*
+  - Easy to read matcher
+  - Mocking (stubbing) HTTP requests
+
+
+
+h1. Resources
+
+http://betterspecs.org/
