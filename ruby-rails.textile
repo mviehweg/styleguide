@@ -1,4 +1,4 @@
-h1. Ruby/Ruby on Rails Code Guideline (Concept)
+h1. Ruby/Ruby on Rails Code Guideline (Work in progress)
 
 It might be hard for you a developer that spent months and years by development of beautiful apps and programs, and himself developed his own style of writing code, to now change it and bend it satisfy this guidelines. However, because all of us have their own style, it might make it hard for others the read it. Moreover, as I mentioned in the on the beginning, we develop, we write our code differently than we did a couple of years ago. That makes it even harder. If we develop when working on a simple application, the code, the way we write methods, becomes inconsistent. It is not wrong. This is perfectly natural. But have you ever looked into your code that you created a long time ago and didn't understand it at all?
 
@@ -9,7 +9,7 @@ It might be hard for you a developer that spent months and years by development 
 
 h1. Coding Style
 
-* Use @UTF-8@ as the source file encoding and include it Ruby magic comment
+* Use @UTF-8@ as the source file encoding and always include Ruby's magic comment
 
 <pre><code># encoding: UTF-8
 </code></pre>
@@ -118,7 +118,7 @@ number = 10_000_000
 
 h1. Documentation
 
-*DISCUSS!*
+*DISCUSS!!*
 
 h1. Syntax
 
@@ -308,14 +308,47 @@ method (3 + 2) + 1
 
 # Right
 method(3 + 2) + 1
+</code></pre>
 
 h1. Naming
+
+* Use @snake_case@ for methods and variables
+* Use @CamelCase@ for classes and modules. (Kepp acronyms like HTTP, RFC, XML uppercase)
+* Use @SCREAMING_SNAKE_CASE@ for other constants
+* The names of predicate methods (methodsathat return a boolean value) should end in a question mark(e.g. @Array#empty?@)
+* The names of potentially "dangerous" methods (e.g. methods that modify @self@ of the arguments) should en with an exclamation mark
+* Define the non-bang (safe) method in terms of the bang (dangerous) one if possible
+
+<pre><code>class Array
+  def flatten_once!
+    result = []
+    each do |e|
+      [*e].each { |f| result << f}
+    end
+    
+    replace(result)
+  end
+  
+  def flatten_once
+    dup.flatten_once!
+  end
+</pre></code>
+
+* When using iterators with short blocks, name the arguments @|a, e|@ (accumulator, element). For long blocks, prefer the full names (@|accumulator, element|@).
+* When difining binary operators, name the arguments @other@.
+
+<pre><code>def +(other)
+  # ommited...
+end
+</code></pre>
+
+* Prefer @collect@ over @map@, @find@ over @detect@, @select@ over @find_all@, @reduce@ over @inject@ and @size@ over @length@. Always prefer those methods that has self-explanatory name.
 
 h1. Unit::Test with Shoulda
 
 *Unit::Test is so great! Why do we need something, that I don't even know, like Shoulda?*
 
-Unit::Test can be great when well written. But when the test file gets longer, when the tested class more complicated and when @test_presence_of_user_when_cloths_state_is_sold@ cannot be longer, it sometimes start be a challenge to understand it.
+Unit::Test can be great when well written. But when the test file gets longer, when the tested class more complicated and when @test_presence_of_user_when_cloths_state_is_sold@ cannot be longer, it sometimes starts to be a challenge to understand it.
 
 Shoulda introduces "contexts" to Unit::Test. This means that instead of using methods and their names to invoke tests, you use blocks with names. It also allows you to write atomic tests without the problem of running out of names for methods.
 
@@ -327,14 +360,14 @@ Shoulda is mainly about text and can get you a nice explanation of the problem w
 <pre><code># Wrong
 class TestSimpleNumber < Test::Unit::TestCase
   context 'simple number' do
-    ...
+    # ommited...
   end
 end
 
 # Right
 class TestSimpleNumber < Test::Unit::TestCase
   context 'SimpleNumber' do
-    ...
+    # ommited...
   end
 end
 </code></pre>
@@ -483,6 +516,61 @@ Always try to test the real behaviour and everything should be just fine. Anyway
 end
 </code></pre> 
 
+h2. Routing tests
+
+Use this unified naming conventions for testing controller routes to have a nice test report if anything goes wrong. Always include HTTP methods in the assertion and keep the order of the keys in hashes the same as on the "Right" example.
+
+<pre><code># Wrong
+should 'routes to user' do
+  assert_routing('/users/1' , { :controller => "users", :action => "show", :id => "321" })
+end
+
+# Wrong (HTTP method not included)
+context 'UsersController routing' do
+  should 'route to #show' do
+    assert_routing('/users/1', :controller => "users", :action => "show", :id => "321")
+  end
+end
+
+# Right
+context 'UsersController routing' do
+  should 'route to #show' do
+    assert_routing({ :method => 'get', :path => '/users/1' }, { :controller => "users", :action => "show", :id => "321" })
+  end
+end
+
+</code></pre>
+
+h2. Controller tests
+
+Use contexts to structure controller tests by actions and methods. Contexts delimiting routable actions should include in their name the HTTP method used to call them. Otherwise the same rules as for unit tests apply.
+
+<pre><code># Wrong
+context 'destroying' do
+  # ommited...
+end
+
+context 'sanitize_options' do
+  # ommited...
+end
+
+# Right
+context 'DELETE #destroy' do
+  # ommited...
+end
+
+context '#sanitize_options' do
+  # ommited...
+end
+</code></pre>
+
+Don't forget to wrap up controller tests to proper context!
+
+<pre><code>context "ArticlesController" do
+  # test here...
+end
+</code></pre>
+
 h1. TODOs
 
 * Discuss everything marked *DISCUSS!!*
@@ -498,4 +586,5 @@ h1. Resources
 
 http://betterspecs.org/
 https://github.com/bbatsov/ruby-style-guide
+https://github.com/bbatsov/rails-style-guide
 https://github.com/styleguide
