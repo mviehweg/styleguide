@@ -1,0 +1,3 @@
+h1. mediapeers Code Guidlines
+
+Please feel free to fork the repository, change it and make a pull request. Any improvements, new ideas and discussions are welcomed!
