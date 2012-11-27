@@ -7,6 +7,19 @@ It might be hard for you a developer that spent months and years by development 
 * *Make it consistent and readable*
 * *Allow newcomers to rapidly get involved in development of new or refactorization of old features*
 
+h1. Table of Contents
+
+* "Coding Style":#CodingStyle
+* "Documentation":#Documentation
+* "Annotations":#Annotations
+* "Syntax":#Syntax
+* "Naming":#Naming
+* "Classes":#Classes
+* "Exceptions":#Exceptions
+* "Collections":#Collections
+* "Strings":#Strings
+* "Unit::Test with Shoulda":#UnitTestwithShoulda
+
 h1. Coding Style
 
 * Use @UTF-8@ as the source file encoding and always include Ruby's magic comment
@@ -119,6 +132,35 @@ number = 10_000_000
 h1. Documentation
 
 *DISCUSS!!*
+
+h1. Annotations
+
+* Annotations should usually be written on the line immediately above the relevant code
+* The annotation keyword is followed by a colon and a space, then a note describing the problem
+* If multiple lines are required to describe the problem, subsequent lines should be indented two spaces after the @#@
+
+<pre><code>def foo
+  #  FIXME: This has crashed occasionally since v3.2.1. It may
+  #   be related to the BarBazUtil upgrade.
+  baz(:quux)
+end
+</code></pre>
+
+* In cases where the problem is so obvious that any documentation would be redundant, annotations may be left at the end of the offending line with no note. This usage should be the exception not the rule.
+
+<pre><code>def bar
+  sleep 100 # OPTIMIZE
+end
+</code></pre>
+
+* Use @HACK@ to note code that smells where questionable coding practices were used and should be refactored away.
+* Use @DEPRECATED@ to mark deprecated methods.
+* Use @TODO@ to note missing features or functionality that should be added at a later date.
+* Use @FIXME@ to note broken code that needs to be fixed.
+* Use @OPTIMIZE@ to note slow or inefficient code that may cause performance problems.
+* Use @REVIEW@ to note anything that should be looked at to confirm it is working as intended, e.g. @REVIEW: Are we sure that this is how the client does X currently?@
+
+*Note that when you add mentioned annotations to the code* (except @HACK@)*, they should be followed by a ticket (or an issue unless it already exists).*
 
 h1. Syntax
 
@@ -344,6 +386,283 @@ end
 
 * Prefer @collect@ over @map@, @find@ over @detect@, @select@ over @find_all@, @reduce@ over @inject@ and @size@ over @length@. Always prefer those methods that has self-explanatory name.
 
+h1. Classes
+
+* Avoid the usage of class (@@) variables due to their behaviour in inheritance.
+
+<pre><code>class Parent
+  @@class_variable = 'parent'
+
+  def self.print_class_variable
+    print @@class_variable
+  end
+end
+
+class Child < Parent
+  @@class_variable = 'child'
+end
+
+Parent.print_class_variable # => will print "child"
+</code></pre>
+
+* Use @def self.method@ to define class methods. This makes the methods more resistant to refactoring changes.
+
+<pre><code>class TestClass
+  # Wrong
+  def TestClass.some_method
+    # ommited...
+  end
+  
+  def self.some_other_method
+    # ommited...
+  end
+end
+</code></pre>
+
+* Avoid @class << self@ expect when necessary, e.g. single accessors and aliased attributes.
+
+<pre><code>class TestClass
+  # bad
+  class << self
+    def first_method
+      # body omitted
+    end
+
+    def second_method_etc
+      # body omitted
+    end
+  end
+
+  # good
+  class << self
+    attr_accessor :per_page
+    alias_method :nwo, :find_by_name_with_owner
+  end
+
+  def self.first_method
+    # body omitted
+  end
+
+  def self.second_method_etc
+    # body omitted
+  end
+end
+</code></pre>
+
+* Indent @public@, @protected@ and @private@ the same as the class definition. Leave one line above and one line below blank. 
+
+<pre><code>class SomeClass
+  def public_method
+    # ...
+  end
+
+private
+
+  def private_method
+    # ...
+  end
+end
+</code></pre>
+
+h1. Exceptions
+
+* Don't use exceptions for flow control
+
+<pre><code># Wrong
+begin
+  n / d
+rescue
+  puts "Cannot divide by 0!"
+end
+
+if d.zero?
+  puts "Cannot divide by 0!"
+else
+  n / d
+end
+</code></pre>
+
+* Never return from an @ensure@ block. If you explicitly return from a method inside an @ensure@ block, the return will take precedence over any exception being raised, and the method will return as if no exception had been raised at all. In effect, the exception will be silently thrown away.
+
+<pre><code>begin
+  fail
+ensure
+  return 'very bad idea'
+end
+</code></pre>
+
+* Use _implicit begin blocks_ when possible
+
+<pre><code># Wrong
+def foo
+  begin
+    # main logic...
+  rescue
+    # failure handling...
+  end
+end
+
+# Right
+def foo
+  # main logic...
+rescue
+  # failure handling...
+end
+</code></pre>
+
+* Put more specific exceptions higher up the rescue chain, otherwise they'll never be rescued from.
+
+<pre><code># Wrong
+begin
+  # main logic...
+rescue Exception => e
+  # failure handling...
+rescue StandardError => e
+  # specific failure handling...
+end
+
+# Right
+begin
+  # main logic...
+rescue StandardError => e
+  # specific failure handling...
+rescue Exception => e
+  # failure handling...
+end
+</code></pre>
+
+h1. Collections
+
+* Prefer @%w@ to the literal array syntax when you need an array of strings
+
+<pre><code># Wrong
+STATES = ['draft', 'open', 'closed']
+
+# Right
+STATES = %w(draft open closed)
+</code></pre>
+
+* Use @Set@ instead of @Array@ when dealing with unique elements. @Set@ implements a collection of unordered values with no duplicates. This is a hybrid of @Array@ 's intuitive inter-operation facilities and @Hash@ 's fast lookup.
+* Use symbols instead of strings as hash keys
+
+<pre><code># Wrong
+hash = { 'one' => 1, 'two' => 2, 'three' => 3 }
+
+# Right
+hash = { :one => 1, :two => 2, :three => 3 }
+</code></pre>
+
+* Never modify a collection while traversing it
+
+h1. Strings
+
+* Prefer stirng interpolation instead of string concatenation:
+
+<pre><code># Wrong
+email_with_name = user.name + ' <' + user.email + '>'
+
+# Right
+email_with_name = "#{user.name} <#{user.email}>"
+</code></pre>
+
+* Prefer single-quoted string when you don't need string interpolation or specfial symbols such as @\t@, @\n@, @'@, etc.
+
+<pre><code># Wrong
+name = "William"
+
+# Right
+name = 'William'
+</code></pre>
+
+* Avoid using @String#+@ when you need to construct large data chunks. Instead, use @String#<<@. Concatenation mutates the string instance in-place and is always faster than @String#+@, which creates a bunch of new string objects.
+
+<pre><code># Good and fast
+html = ''
+html << '<h1>Page title</h1>'
+
+paragraphs.each do |paragraph|
+  html << "<p>#{paragraph}</p>"
+end
+</code></pre>
+
+h1. Regular Expressions
+
+* Don't use regualar expressions if you just need plain text search in string: @string['text']@
+* For simple constructions you can use regexp directly through string index
+
+<pre><code>
+  match = string[/regexp/]             # get content of matched regexp
+  first_group = string[/text(grp)/, 1] # get content of captured group
+  string[/text (grp)/, 1] = 'replace'  # string => 'text replace'
+</code></pre>
+
+
+
+* Avoid using $1-9 as it can be hard to track what they contain. Named groups can be used instead.
+
+<pre><code># Wrong
+/(regexp)/ =~ string
+...
+process $1
+
+# Right
+/(?<meaningful_var>regexp)/ =~ string
+...
+process meaningful_var
+</code></pre>
+
+* Character classes have only few special characters you should care about: @^@, @-@, @\@, @]@, so don't escape @.@ or brackets in @[]@.
+* Be careful with @^@and @$@ as they match start/end of line, not string endings. If you want to match the whole string use @\A@ and @\z@ (not to be confused with @\Z@ which is the equivalent of @/\n?\z/@).
+
+<pre><code>string = "some injection\nusername"
+string[/^username$/]   # matches
+string[/\Ausername\z/] # don't match
+</code></pre>
+
+* For complex replacements use @sub@ and @gsub@ methods
+
+h1. Percent literals
+
+* Use @%w@ freely.
+* Use @%()@ for single-line string which require both interpolation and embedded double quotes. For multi-line strings, prefer heredocs.
+
+<pre><code># Wrong (no interpolation needed)
+%(<div class="text">Some text</div>)
+# should be '<div class="text">Some text</div>'
+
+# Wrong (no double-quotes)
+%(This is #{quality} style)
+# should be "This is #{quality} style"
+
+# Wrong (multiple lines)
+%(<div>\n<span class="big">#{exclamation}</span>\n</div>)
+# should be a heredoc.
+
+# Right (requires interpolation, has quotes, single line)
+%(<tr><td class="name">#{name}</td>)
+</code></pre>
+
+* Use @%r@ only for regualar expressions matching more then one @/@ character
+
+<pre><code># Wrong
+%r(\s+)
+
+# Still wrong
+%r(^/(.*)$)
+# should be /^\/(.*)$/
+
+# Right
+%r(^/blog/2011/(.*)$)
+</code></pre>
+
+* Avoid @%q@, @%Q@, @%x@, @%s@, and @%W@.
+* Prefer @()@ as delimiters for all @%@ literals.
+
+h1. Metaprogramming
+
+* Avoid needless metaprogramming.
+* Do not mess around the core classes when writing libraries (do not monkeypatch them).
+
 h1. Unit::Test with Shoulda
 
 *Unit::Test is so great! Why do we need something, that I don't even know, like Shoulda?*
@@ -447,7 +766,7 @@ context 'when resource is not owned' do
 end
 </code></pre>
 
-h2. User factories and not fixtures
+h2. Use factories instead of fixtures
 
 Do not use fixtures which are difficult to control, instead use factries. Use them to reduce the verbosity on creating new data.
 
@@ -574,8 +893,6 @@ end
 h1. TODOs
 
 * Discuss everything marked *DISCUSS!!*
-* Naming
-* The rest after naming in styleguides
 * *Unit::Test with Shoulda*
   - Easy to read matcher
   - Mocking (stubbing) HTTP requests
