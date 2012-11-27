@@ -164,7 +164,7 @@ end
 
 h1. Syntax
 
-* Use @def@ with parentheses when there are arguments. Omit the parentheses when the method accept any arguments
+* Use @def@ with parentheses when there are arguments. Omit the parentheses when the method does not accept any arguments
 
 <pre><code>def some_method
   # ommited...
