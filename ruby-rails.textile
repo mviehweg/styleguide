@@ -835,6 +835,37 @@ Always try to test the real behaviour and everything should be just fine. Anyway
 end
 </code></pre> 
 
+h2. Shoulda one liners
+
+Shoulda also comes in with matchers, helpers, and assertions that makes it easy to write elegant and understandable tests. I'll give you just a quick overview. For full documentation see "resources":#Resources. 
+
+These one-liners are preferred over classical @should@ tests when:
+* Testing associations in models
+* Testing responses of controllers
+
+However, when testing model validations, stick to @should@ and block. This is also the preferred way when the tested behaviour is far to complex to be easily described by Shoulda's one-liners.
+
+<pre><code>
+class PostTest < Test::Unit::TestCase
+  should belong_to(:user)
+  should have_many(:tags).through(:taggings)
+end
+
+class PostsControllerTest < ActionController::TestCase
+  context "on GET to :show for first record" do
+    setup do
+      get :show, :id => 1
+    end
+
+    should assign_to(:user)
+    should respond_with(:success)
+    should render_template(:show)
+    should_not set_the_flash
+  end
+end
+</code></pre> 
+
+
 h2. Routing tests
 
 Use this unified naming conventions for testing controller routes to have a nice test report if anything goes wrong. Always include HTTP methods in the assertion and keep the order of the keys in hashes the same as on the "Right" example.
@@ -894,7 +925,6 @@ h1. TODOs
 
 * Discuss everything marked *DISCUSS!!*
 * *Unit::Test with Shoulda*
-  - Easy to read matcher
   - Mocking (stubbing) HTTP requests
 
 
@@ -905,3 +935,4 @@ http://betterspecs.org/
 https://github.com/bbatsov/ruby-style-guide
 https://github.com/bbatsov/rails-style-guide
 https://github.com/styleguide
+https://github.com/thoughtbot/shoulda/tree/v2.11.3
