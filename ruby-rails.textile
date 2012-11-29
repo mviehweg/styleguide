@@ -3,9 +3,9 @@ h1. Ruby/Ruby on Rails Code Guideline
 It might be hard for you a developer that spent months and years by development of beautiful apps and programs, and himself developed his own style of writing code, to now change it and bend it satisfy this guidelines. However, because all of us have their own style, it might make it hard for others the read it. Moreover, as I mentioned in the on the beginning, we develop, we write our code differently than we did a couple of years ago. That makes it even harder. If we develop when working on a simple application, the code, the way we write methods, becomes inconsistent. It is not wrong. This is perfectly natural. But have you ever looked into your code that you created a long time ago and didn't understand it at all?
 
 *The motivation of this document is simple:*
-* Unify the way we write our code
-* Make it consistent and readable
-* Allow newcomers to rapidly get involved in development of new or refactorization of old features
+* *Unify the way we write our code*
+* *Make it consistent and readable*
+* *Allow newcomers to rapidly get involved in development of new or refactorization of old features*
 
 h1. Table of Contents
 
