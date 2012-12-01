@@ -861,6 +861,20 @@ For testing @speak@ you can stub @current_temperature@ and speed up the test. Yo
 end
 </code></pre>
 
+h2. Stubing HTTP requests
+
+If you need to test HTTP requests, use "Webmock":https://github.com/bblimke/webmock. It provides methods for stubing libraries like @Net::HTTP@, @HTTParty@, @RestClient@, and is very well maintained. 
+
+<pre><code>stub_request(:post, "www.example.com").with(:body => "abc", :headers => { 'Content-Length' => 3 })
+
+uri = URI.parse("http://www.example.com/")
+req = Net::HTTP::Post.new(uri.path)
+req['Content-Length'] = 3
+
+res = Net::HTTP.start(uri.host, uri.port) { |http|
+  http.request(req, "abc")
+}    # ===> Success
+</code></pre>
 
 h2. Shoulda one liners
 
