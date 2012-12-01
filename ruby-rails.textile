@@ -220,7 +220,7 @@ else
 end
 </code></pre>
 
-* Use @and@ and @or@ keywords for control flow. In conditionsalways use @&&@ and @||@.
+* Use @and@ and @or@ keywords for control flow. In condition salways use @&&@ and @||@.
 h1. Unit::Test with Shoulda
 * Favour modifier @if/unless@ usage when you have a single-line body
 
@@ -670,6 +670,8 @@ h1. Unit::Test with Shoulda
 Unit::Test can be great when well written. But when the test file gets longer, when the tested class more complicated and when @test_presence_of_user_when_cloths_state_is_sold@ cannot be longer, it sometimes starts to be a challenge to understand it.
 
 Shoulda introduces "contexts" to Unit::Test. This means that instead of using methods and their names to invoke tests, you use blocks with names. It also allows you to write atomic tests without the problem of running out of names for methods.
+
+"Example unit test file":https://github.com/mediapeers/styleguide/blob/master/examples/unit_test_with_shoulda.rb
 
 h2. Describe class
 
