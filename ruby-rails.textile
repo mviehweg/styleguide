@@ -826,14 +826,39 @@ end
 
 h2. Stub or not to stub
 
-Always try to test the real behaviour and everything should be just fine. Anyway, sometimes stubs my be useful, e.g. you stub a filter that you don't want to be run, or a method that is called by the tested behaviour. Stubs make your tests definitely faster, that is beyond question. But never "overstub" your test in a way that would make it hard to understand.
+Always try to test the real behaviour and everything should be just fine. Anyway, sometimes stubs my be useful, e.g. you stub a filter that you don't want to be run, or a method that is called by the tested behaviour. Stubs can make your tests definitely faster but they should not affect the tested behaviour, otherwise the test would lose its sense.
 
-<pre><code>context 'when not found' do
-  should 'respond with 404' do
-    assert_equal 404, response.status
+Consider this example:
+
+<pre><code>class WeatherGuy
+
+  def speak
+    "The current temperature is #{current_temperature}"
+  end
+  
+private
+  
+  def current_temperature
+    # downloads data from weather.com
+    # takes a couple of seconds...
+    # returns integer
   end
 end
-</code></pre> 
+</code></pre>
+
+For testing @speak@ you can stub @current_temperature@ and speed up the test. You can do it because you are interested in the result of @speak@ method, not in the whole process.
+
+<pre><code>should 'tell the current temperature the human way' do
+  weather_guy = WeatherGuy.new
+  
+  weather_guy.stubs(:current_temperature, 5)
+  assert_equal "The current temperature is 5", weather_guy.speak
+  
+  weather_guy.stubs(:current_temperature, 19)
+  assert_equal "The current temperature is 19", weather_guy.speak
+end
+</code></pre>
+
 
 h2. Shoulda one liners
 
