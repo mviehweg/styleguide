@@ -72,8 +72,6 @@ kind = case year
 
 * Align the parameters of a method call if they span over multiple lines
 
-*DISCUSS!!*
-
 <pre><code># Wrong (line is too long)
 def send_mail(source)
   Mailer.deliver(to: 'bob@example.com', from: 'us@example.com', subject: 'Important message', body: source.text)
@@ -88,6 +86,15 @@ def send_mail(source)
       :body => source.text)
 end
 
+# Wrong (not compact)
+def send_mail(source)
+  Mailer.deliver(:to => 'bob@example.com',
+                 :from => 'us@example.com',
+                 :subject => 'Important message',
+                 :body => source.text)
+end
+
+# Right
 def send_mail(source)
   Mailer.deliver(
     :to => 'bob@example.com',
@@ -95,13 +102,35 @@ def send_mail(source)
     :subject => 'Important message',
     :body => source.text)
 end
+</code></pre>
 
-def send_mail(source)
-  Mailer.deliver(:to => 'bob@example.com',
-                 :from => 'us@example.com',
-                 :subject => 'Important message',
-                 :body => source.text)
-end
+* Align keys and values of very long hashes into columns 
+
+<pre><code># Wrong
+ADDRESS = {
+  :addres => "Summerville Avenue"
+  :house_number => "1712"
+  :city => "Tustin"
+  :zip => "92780"
+  :county => "Orange County"
+  :state => "California"
+  :country => "United States of America"
+  :language => "English",
+  :shipping => "DHL"
+}
+
+# Right
+ADDRESS = {
+  :address      => "Summerville Avenue"
+  :house_number => "1712"
+  :city         => "Tustin"
+  :zip          => "92780"
+  :county       => "Orange County"
+  :state        => "California"
+  :country      => "United States of America"
+  :language     => "English",
+  :shipping     => "DHL"
+}
 </code></pre>
 
 * Use empty lines between methods and to break a method into logical paragraphs
